@@ -1,23 +1,30 @@
-install.packages("rpart.plot")
-library(rpart)
-library(rpart.plot)
-iris
-dim(iris)
+library("ISLR")
+library(MASS)
+library(boot)
 
-sample_iris = sample(150, 100)
-sample_iris
+set.seed(2)
 
-train_df = iris[sample_iris,]
-test_df = iris[-sample_iris,]
+?cv.glm
+attach(Auto)
 
-dim(train_df)
-dim(test_df)
+train <- sample(392, 196)
 
-?rpart
-colnames(iris)
-model = rpart(Species ~ ., data=train_df, method="class")
-plot(model)
-rpart.plot(model)
+lm.fit <- lm(mpg~horsepower, data=Auto, subset=train)
+mean((mpg-predict(lm.fit, Auto))[-train]^2) # MSE
 
-predictions = predict(model, test_df)
-predictions
+lm.fit2 <- lm(mpg~poly(horsepower, 2), data=Auto, subset=train)
+mean((mpg-predict(lm.fit2, Auto))[-train]^2)
+
+lm.fit3 <- lm(mpg~poly(horsepower, 3), data=Auto, subset=train)
+mean((mpg-predict(lm.fit3, Auto))[-train]^2)
+
+set.seed(17)
+cv.error.10 = rep(0, 10)
+
+for(i in 1:10){
+    glm.fit <- glm(mpg~poly(horsepower, i), data=Auto)
+    cv.error.10[i] <- cv.glm(Auto, glm.fit, K=10) $delta[1]
+}
+
+
+cv.error.10
